@@ -6,6 +6,8 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"strconv"
+	"strings"
 )
 
 func main() {
@@ -38,6 +40,13 @@ func handleConn(connection net.Conn) {
 
 	if req.URL.Path == "/" {
 		connection.Write([]byte("HTTP/1.1 200 OK\r\n\r\n"));
+	} else if strings.Contains(req.URL.Path, "/echo") {
+		content := req.URL.Path[6:];
+		contentLen := len(content);
+
+		strToReturn := "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " + strconv.Itoa(contentLen) + "\r\n\r\n" + content;
+
+		connection.Write([]byte(strToReturn));
 	}
 	
 	connection.Write([]byte("HTTP/1.1 404 Not Found\r\n\r\n"));
