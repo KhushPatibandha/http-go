@@ -37,6 +37,9 @@ func handleConn(connection net.Conn) {
 
 	fmt.Println("Request method: ", req.Method);
 	fmt.Println("Request url: ", req.URL.Path);
+	fmt.Println("Request header: ", req.Header.Values("User-Agent"));
+
+	fmt.Println(req.Header.Values("User-Agent")[0] == "foobar/1.2.3");
 
 	if req.URL.Path == "/" {
 		connection.Write([]byte("HTTP/1.1 200 OK\r\n\r\n"));
@@ -47,7 +50,15 @@ func handleConn(connection net.Conn) {
 		strToReturn := "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " + strconv.Itoa(contentLen) + "\r\n\r\n" + content;
 
 		connection.Write([]byte(strToReturn));
+	} else if strings.Contains(req.URL.Path, "/user-agent") {
+		headerContent := req.Header.Values("User-Agent")[0];
+		headerContentLen := len(headerContent);
+
+		strToReturn := "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " + strconv.Itoa(headerContentLen) + "\r\n\r\n" + headerContent;
+
+		connection.Write([]byte(strToReturn));
+	} else {
+		connection.Write([]byte("HTTP/1.1 404 Not Found\r\n\r\n"));
 	}
 	
-	connection.Write([]byte("HTTP/1.1 404 Not Found\r\n\r\n"));
 }
