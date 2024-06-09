@@ -59,7 +59,7 @@ func handleConn(connection net.Conn, directory string) {
 
 		var strToReturn string;
 
-		if len(headerContentEncoding) > 0 && headerContentEncoding[0] == "gzip" {
+		if len(headerContentEncoding) > 0 && strings.Contains(headerContentEncoding[0], "gzip") {
 			strToReturn = "HTTP/1.1 200 OK\r\nContent-Encoding: gzip\r\nContent-Type: text/plain\r\nContent-Length: " + strconv.Itoa(contentLen) + "\r\n\r\n" + content;
 		} else {
 			strToReturn = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " + strconv.Itoa(contentLen) + "\r\n\r\n" + content;
@@ -72,7 +72,7 @@ func handleConn(connection net.Conn, directory string) {
 		headerUserAgentContentLen := len(headerUserAgentContent);
 
 		var strToReturn string;
-		if len(headerContentEncoding) > 0 && headerContentEncoding[0] == "gzip" {
+		if len(headerContentEncoding) > 0 && strings.Contains(headerContentEncoding[0], "gzip") {
 			strToReturn = "HTTP/1.1 200 OK\r\nContent-Encoding: gzip\r\nContent-Type: text/plain\r\nContent-Length: " + strconv.Itoa(headerUserAgentContentLen) + "\r\n\r\n" + headerUserAgentContent;
 		} else {
 			strToReturn = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " + strconv.Itoa(headerUserAgentContentLen) + "\r\n\r\n" + headerUserAgentContent;
