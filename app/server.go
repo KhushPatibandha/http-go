@@ -2,6 +2,8 @@ package main
 
 import (
 	"bufio"
+	"bytes"
+	"compress/gzip"
 	"flag"
 	"fmt"
 	"io"
@@ -60,7 +62,9 @@ func handleConn(connection net.Conn, directory string) {
 		var strToReturn string;
 
 		if len(headerContentEncoding) > 0 && strings.Contains(headerContentEncoding[0], "gzip") {
-			strToReturn = "HTTP/1.1 200 OK\r\nContent-Encoding: gzip\r\nContent-Type: text/plain\r\nContent-Length: " + strconv.Itoa(contentLen) + "\r\n\r\n" + content;
+			encodedContent := encodeGzip(content);
+			encodedContentLen := len(encodedContent);
+			strToReturn = "HTTP/1.1 200 OK\r\nContent-Encoding: gzip\r\nContent-Type: text/plain\r\nContent-Length: " + strconv.Itoa(encodedContentLen) + "\r\n\r\n" + string(encodedContent);
 		} else {
 			strToReturn = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " + strconv.Itoa(contentLen) + "\r\n\r\n" + content;
 		}
@@ -73,7 +77,9 @@ func handleConn(connection net.Conn, directory string) {
 
 		var strToReturn string;
 		if len(headerContentEncoding) > 0 && strings.Contains(headerContentEncoding[0], "gzip") {
-			strToReturn = "HTTP/1.1 200 OK\r\nContent-Encoding: gzip\r\nContent-Type: text/plain\r\nContent-Length: " + strconv.Itoa(headerUserAgentContentLen) + "\r\n\r\n" + headerUserAgentContent;
+			encodedContent := encodeGzip(headerUserAgentContent);
+			encodedContentLen := len(encodedContent);
+			strToReturn = "HTTP/1.1 200 OK\r\nContent-Encoding: gzip\r\nContent-Type: text/plain\r\nContent-Length: " + strconv.Itoa(encodedContentLen) + "\r\n\r\n" + string(encodedContent);
 		} else {
 			strToReturn = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " + strconv.Itoa(headerUserAgentContentLen) + "\r\n\r\n" + headerUserAgentContent;
 		}
@@ -104,4 +110,20 @@ func handleConn(connection net.Conn, directory string) {
 		connection.Write([]byte("HTTP/1.1 404 Not Found\r\n\r\n"));
 	}
 	
+}
+
+func encodeGzip(content string) []byte {
+	encodedContent := new(bytes.Buffer)
+	gz := gzip.NewWriter(encodedContent)
+	_, err := gz.Write([]byte(content))
+	if err != nil {
+		fmt.Println("Error encoding content: ", err.Error())
+		return nil;
+	}
+	err = gz.Close()
+	if err != nil {
+		fmt.Println("Error closing gzip writer: ", err.Error())
+		return nil;
+	}
+	return encodedContent.Bytes();
 }
