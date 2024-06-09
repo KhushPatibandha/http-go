@@ -37,20 +37,12 @@ func main() {
 }
 
 func handleConn(connection net.Conn, directory string) {
-
 	defer connection.Close();
 	req, err := http.ReadRequest(bufio.NewReader(connection));
 	if err != nil {
 		fmt.Println("Error reading request: ", err.Error())
 		return
 	}
-
-	fmt.Println("Request method: ", req.Method);
-	fmt.Println("Request url: ", req.URL.Path);
-	fmt.Println("Request header: ", req.Header.Values("User-Agent"));
-	fmt.Println("Request header: ", req.Header.Values("Content-Type"));
-	fmt.Println("Request header: ", req.Header.Values("Accept-Encoding"));
-	fmt.Println(directory);
 
 	if req.URL.Path == "/" {
 		connection.Write([]byte("HTTP/1.1 200 OK\r\n\r\n"));
@@ -99,7 +91,6 @@ func handleConn(connection net.Conn, directory string) {
 
 		connection.Write([]byte(strToReturn));
 	} else if req.Method == "POST" && strings.Contains(req.URL.Path, "/files") {
-	
 		fileName := req.URL.Path[7:];
 		fileContent, _ := io.ReadAll(req.Body);
 
@@ -109,7 +100,6 @@ func handleConn(connection net.Conn, directory string) {
 	} else {
 		connection.Write([]byte("HTTP/1.1 404 Not Found\r\n\r\n"));
 	}
-	
 }
 
 func encodeGzip(content string) []byte {
