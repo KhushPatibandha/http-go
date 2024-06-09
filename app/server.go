@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"os"
@@ -45,6 +46,7 @@ func handleConn(connection net.Conn, directory string) {
 	fmt.Println("Request method: ", req.Method);
 	fmt.Println("Request url: ", req.URL.Path);
 	fmt.Println("Request header: ", req.Header.Values("User-Agent"));
+	fmt.Println("Request header: ", req.Header.Values("Content-Type"));
 	fmt.Println(directory);
 
 	if req.URL.Path == "/" {
@@ -63,7 +65,7 @@ func handleConn(connection net.Conn, directory string) {
 		strToReturn := "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: " + strconv.Itoa(headerContentLen) + "\r\n\r\n" + headerContent;
 
 		connection.Write([]byte(strToReturn));
-	} else if strings.Contains(req.URL.Path, "/files") {
+	} else if req.Method == "GET" && strings.Contains(req.URL.Path, "/files") {
 		fileName := req.URL.Path[7:];
 
 		fileContent, err := os.ReadFile("/" + directory + "/" + fileName);
@@ -76,6 +78,14 @@ func handleConn(connection net.Conn, directory string) {
 		strToReturn := "HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: " + strconv.Itoa(fileContentLen) + "\r\n\r\n" + string(fileContent);
 
 		connection.Write([]byte(strToReturn));
+	} else if req.Method == "POST" && strings.Contains(req.URL.Path, "/files") {
+	
+		fileName := req.URL.Path[7:];
+		fileContent, _ := io.ReadAll(req.Body);
+
+		_ = os.WriteFile("/" + directory + "/" + fileName, fileContent, 0644);
+
+		connection.Write([]byte("HTTP/1.1 201 Created\r\n\r\n"));
 	} else {
 		connection.Write([]byte("HTTP/1.1 404 Not Found\r\n\r\n"));
 	}
