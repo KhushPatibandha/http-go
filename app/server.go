@@ -39,8 +39,6 @@ func handleConn(connection net.Conn) {
 	fmt.Println("Request url: ", req.URL.Path);
 	fmt.Println("Request header: ", req.Header.Values("User-Agent"));
 
-	fmt.Println(req.Header.Values("User-Agent")[0] == "foobar/1.2.3");
-
 	if req.URL.Path == "/" {
 		connection.Write([]byte("HTTP/1.1 200 OK\r\n\r\n"));
 	} else if strings.Contains(req.URL.Path, "/echo") {
